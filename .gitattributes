@@ -1,2 +1,7 @@
 *.zip filter=lfs diff=lfs merge=lfs -text
 . filter=lfs diff=lfs merge=lfs -text
+datasets/SMD/SMD_test.npy filter=lfs diff=lfs merge=lfs -text
+datasets/SMD/SMD_train.npy filter=lfs diff=lfs merge=lfs -text
+datasets/SWAT/swat2.csv filter=lfs diff=lfs merge=lfs -text
+datasets/WADI/WADI_train.npy filter=lfs diff=lfs merge=lfs -text
+datasets/SWAT/swat_train2.csv filter=lfs diff=lfs merge=lfs -text
