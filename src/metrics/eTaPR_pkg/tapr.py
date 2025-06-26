@@ -2,7 +2,16 @@ import argparse
 from typing import Callable
 import math
 import copy
+
+import sys
+import os
+
+fil_pth = os.path.dirname(os.path.abspath(__file__))
+proj_dir = os.path.dirname(fil_pth)  # 获取上上级路径
+sys.path.append(proj_dir)  # 将项目根目录添加到系统路径中
+
 from eTaPR_pkg.DataManage import File_IO, Range as rng
+
 
 
 class TaPR:

@@ -1,15 +1,26 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import math
-from metrics.affiliation._affiliation_zone import (
-        get_all_E_gt_func, 
-        affiliation_partition)
-from metrics.affiliation._integral_interval import (
-        integral_interval_distance,
-        integral_interval_probaCDF_precision, 
-        integral_interval_probaCDF_recall, 
-        interval_length,
-        sum_interval_lengths)
+try:
+    from metrics.affiliation._affiliation_zone import (
+            get_all_E_gt_func, 
+            affiliation_partition)
+    from metrics.affiliation._integral_interval import (
+            integral_interval_distance,
+            integral_interval_probaCDF_precision, 
+            integral_interval_probaCDF_recall, 
+            interval_length,
+            sum_interval_lengths)
+except ImportError:
+    from affiliation._affiliation_zone import (
+            get_all_E_gt_func, 
+            affiliation_partition)
+    from affiliation._integral_interval import (
+            integral_interval_distance,
+            integral_interval_probaCDF_precision, 
+            integral_interval_probaCDF_recall, 
+            interval_length,
+            sum_interval_lengths)
 
 def affiliation_precision_distance(Is = [(1,2),(3,4),(5,6)], J = (2,5.5)):
     """

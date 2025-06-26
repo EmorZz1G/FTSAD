@@ -43,7 +43,14 @@ def data_name2nc(data_name: str):
         raise ValueError(f'no this dataset {data_name}')
     return nc
 
-class PSMSegLoader(object):
+class GetDataset(object):
+    def load_data(self):
+        assert hasattr(self,'train') and self.train is not None, "subclass must have self.train"
+        assert self.test is not None, "subclass must have self.test"
+        assert self.test_labels is not None, "subclass must have self.test_labels"
+        return self.train, self.test, self.test_labels
+
+class PSMSegLoader(GetDataset):
     def __init__(self, data_path, win_size, step, mode="train"):
         self.mode = mode
         self.step = step
@@ -93,7 +100,7 @@ class PSMSegLoader(object):
                 self.test_labels[index // self.step * self.win_size:index // self.step * self.win_size + self.win_size])
 
 
-class MSLSegLoader(object):
+class MSLSegLoader(GetDataset):
     def __init__(self, data_path, win_size, step, mode="train"):
         self.mode = mode
         self.step = step
@@ -134,7 +141,7 @@ class MSLSegLoader(object):
         
 
 
-class MSL1SegLoader(object):
+class MSL1SegLoader(GetDataset):
     def __init__(self, data_path, win_size, step, mode="train"):
         self.mode = mode
         self.step = step
@@ -175,7 +182,7 @@ class MSL1SegLoader(object):
                 self.test_labels[index // self.step * self.win_size:index // self.step * self.win_size + self.win_size])
 
 
-class SMAPSegLoader(object):
+class SMAPSegLoader(GetDataset):
     def __init__(self, data_path, win_size, step, mode="train"):
         self.mode = mode
         self.step = step
@@ -215,7 +222,7 @@ class SMAPSegLoader(object):
                 self.test_labels[index // self.step * self.win_size:index // self.step * self.win_size + self.win_size])
 
 
-class SMDSegLoader(object):
+class SMDSegLoader(GetDataset):
     def __init__(self, data_path, win_size, step, mode="train"):
         self.mode = mode
         self.step = step
@@ -257,7 +264,7 @@ class SMDSegLoader(object):
 
         
         
-class UCRSegLoader(object):
+class UCRSegLoader(GetDataset):
     def __init__(self, index, data_path, win_size, step, mode="train"):
         self.mode = mode
         self.step = step
@@ -302,7 +309,7 @@ class UCRSegLoader(object):
                 self.test_labels[index // self.step * self.win_size:index // self.step * self.win_size + self.win_size])    
         
 
-class UCRAUGSegLoader(object):
+class UCRAUGSegLoader(GetDataset):
     def __init__(self, index, data_path, win_size, step, mode="train"):
         self.mode = mode
         self.step = step
@@ -347,7 +354,7 @@ class UCRAUGSegLoader(object):
                 self.test_labels[index // self.step * self.win_size:index // self.step * self.win_size + self.win_size]) 
         
 
-class NIPS_TS_WaterSegLoader(object):
+class NIPS_TS_WaterSegLoader(GetDataset):
     def __init__(self, data_path, win_size, step, mode="train"):
         self.mode = mode
         self.step = step
@@ -392,7 +399,7 @@ class NIPS_TS_WaterSegLoader(object):
         
         
         
-class NIPS_TS_SwanSegLoader(object):
+class NIPS_TS_SwanSegLoader(GetDataset):
     def __init__(self, data_path, win_size, step, mode="train"):
         self.mode = mode
         self.step = step
@@ -436,7 +443,7 @@ class NIPS_TS_SwanSegLoader(object):
         
 
 
-class WADI_SegLoader(object):
+class WADI_SegLoader(GetDataset):
     def __init__(self, data_path, win_size, step, mode="train", ignore=(102,), scaler=False):
         self.mode = mode
         self.step = step
@@ -483,7 +490,7 @@ class WADI_SegLoader(object):
                               index // self.step * self.win_size:index // self.step * self.win_size + self.win_size]), np.float32(
                 self.test_labels[index // self.step * self.win_size:index // self.step * self.win_size + self.win_size]) 
 
-class NIPS_TS_CCardSegLoader(object):
+class NIPS_TS_CCardSegLoader(GetDataset):
     def __init__(self, data_path, win_size, step, mode="train"):
         self.mode = mode
         self.step = step
@@ -527,7 +534,7 @@ class NIPS_TS_CCardSegLoader(object):
 
         
         
-class SMD_OriSegLoader(object):
+class SMD_OriSegLoader(GetDataset):
     def __init__(self, index, data_path, win_size, step, mode="train"):
         self.mode = mode
         self.step = step

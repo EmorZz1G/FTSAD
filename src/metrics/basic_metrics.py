@@ -2,14 +2,30 @@ from sklearn import metrics
 import numpy as np
 import math
 import copy
-from eTaPR_pkg.tapr import print_result, compute
-from eTaPR_pkg.etapr import evaluate_w_ranges
-from eTaPR_pkg.DataManage.File_IO import load_list
+try:
+    from eTaPR_pkg.tapr import print_result, compute
+    from eTaPR_pkg.etapr import evaluate_w_ranges
+    from eTaPR_pkg.DataManage.File_IO import load_list
+    from pate.PATE_metric import PATE
+    from affiliation.generics import convert_vector_to_events
+    from affiliation.metrics import pr_from_events
+except Exception:
+    import os
+    import sys
+    fil_pth = os.path.dirname(os.path.abspath(__file__))
+    # proj_dir = os.path.dirname(fil_pth)  # 获取上上级路径
+    sys.path.append(fil_pth)  # 将项目根目录添加到系统路径中
+    from eTaPR_pkg.tapr import print_result, compute
+    from eTaPR_pkg.etapr import evaluate_w_ranges
+    from eTaPR_pkg.DataManage.File_IO import load_list
+    from pate.PATE_metric import PATE
+    from affiliation.generics import convert_vector_to_events
+    from affiliation.metrics import pr_from_events
 
 from itertools import groupby
 from operator import itemgetter
 
-from pate.PATE_metric import PATE
+
 
 def generate_curve(label, score, slidingWindow, version='opt', thre=250):
     if version =='opt_mem':
@@ -60,6 +76,33 @@ class basic_metricor():
         self.bias = bias
         self.eps = 1e-15
         self.Unbiased_Aff_prec_bias = None
+
+    def get_pred(self, score, quantile=0.95):
+        """
+        Get the predicted labels based on the score and quantile.
+        """
+        assert 0 < quantile < 1, "Quantile must be between 0 and 1."
+        
+        thres = np.percentile(score, quantile*100)
+        preds = score > thres
+        return preds
+
+    def cal_unbiased_aff_prec_bias(self, label, sample_cnt=3, verbose=1):
+        precs_bias = []
+        for i in range(sample_cnt):
+            rnd_score = np.random.rand(len(label))
+            thres = np.percentile(rnd_score, 95)
+            preds = rnd_score > thres
+            Affiliation_F, Aff_pre, Aff_rec = self.metric_Affiliation(label, rnd_score, preds=preds)
+            precs_bias.append(Aff_pre)
+        avg_bias = np.mean(precs_bias)
+        if verbose:
+            print(f"[Info]: Unbiased_Aff_prec_bias is set to {avg_bias:.4f} by sampling {sample_cnt} times.")
+            out_str = ", ".join([f"{v:.4}" for i, v in enumerate(precs_bias)])
+            print(f"[Info]: Unbiased_Aff_prec_bias sampling results: [{out_str}]")          
+                
+        self.Unbiased_Aff_prec_bias = avg_bias
+        return avg_bias
 
     def _metric_PA_percentile_K_k(self, labels, score, preds=None, k = 0.1):
         if preds is None:
@@ -230,22 +273,7 @@ class basic_metricor():
 
         return PointF1PA1, Pre, Rec
 
-    def cal_unbiased_aff_prec_bias(self, label, sample_cnt=3, verbose=1):
-        precs_bias = []
-        for i in range(sample_cnt):
-            rnd_score = np.random.randn(len(label))
-            thres = np.percentile(rnd_score, 95)
-            preds = rnd_score > thres
-            Affiliation_F, Aff_pre, Aff_rec = self.metric_Affiliation(label, rnd_score, preds=preds)
-            precs_bias.append(Aff_pre)
-        avg_bias = np.mean(precs_bias)
-        if verbose:
-            print(f"[Info]: Unbiased_Aff_prec_bias is set to {avg_bias:.2f} by sampling {sample_cnt} times.")
-            out_str = ", ".join([f"{v:.2f}" for i, v in enumerate(precs_bias)])
-            print(f"[Info]: Unbiased_Aff_prec_bias sampling results: [{out_str}]")          
-                
-        self.Unbiased_Aff_prec_bias = avg_bias
-        return avg_bias
+    
         
 
     def metric_UN_Affiliation(self, labels, score, pred=None):
@@ -266,7 +294,7 @@ class basic_metricor():
 
         return UAff_F1, NAff_F1
 
-    def metric_U_Affiliation(self, labels, score, pred=None):
+    def metric_U_Affiliation_f1_pre_rec(self, labels, score, pred=None):
         Affiliation_F, Aff_pre, Aff_rec = self.metric_Affiliation(labels, score, preds=pred)
         bias_aff_pre = self.Unbiased_Aff_prec_bias
         if bias_aff_pre is None:
@@ -278,16 +306,16 @@ class basic_metricor():
             UAff_F1 *= -1
 
 
-        return UAff_F1
+        return UAff_F1, UAff_Pre, Aff_rec
     
-    def metric_N_Affiliation(self, labels, score, pred=None):
+    def metric_N_Affiliation_f1_pre_rec(self, labels, score, pred=None):
         Affiliation_F, Aff_pre, Aff_rec = self.metric_Affiliation(labels, score, preds=pred)
         NAff_Pre = (Aff_pre - 0.5)/(1-0.5)
         NAff_F1 = 2*abs(NAff_Pre)*Aff_rec/(abs(NAff_Pre)+Aff_rec)
         if NAff_Pre < 0:
             NAff_F1 *= -1
 
-        return NAff_F1
+        return NAff_F1, NAff_Pre, Aff_rec
 
     def detect_model(self, model, label, contamination = 0.1, window = 100, is_A = False, is_threshold = True):
         if is_threshold:
@@ -304,7 +332,7 @@ class basic_metricor():
         L = self.metric(label, scoreX)
         return L
     
-    def metric_VUS(self, labels, scores, slidingWindow=100, version='opt', thre=250):
+    def metric_VUS_ROC_PR(self, labels, scores, slidingWindow=100, version='opt', thre=250):
         _, _, _, _, _, _,VUS_ROC, VUS_PR = generate_curve(labels.astype(int), scores, 2*slidingWindow, version, thre)
         return VUS_ROC, VUS_PR
 
@@ -507,14 +535,14 @@ class basic_metricor():
 
 
     def metric_Affiliation(self, label, score, preds=None):
-        from .affiliation.generics import convert_vector_to_events
-        from .affiliation.metrics import pr_from_events
+        
 
         if preds is None:
             thresholds = np.linspace(score.min(), score.max(), 100)
             Affiliation_scores = []
             Affiliation_pre = []
             Affiliation_rec = []
+            print("[Warning]: If the preds is None, the calculation will be time-consuming!!! We will calculate the threshold for each percentile. Please set the preds manually if you want to speed up the calculation.")
 
             for threshold in thresholds:
                 preds = (score > threshold).astype(int)

@@ -1,19 +1,35 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from metrics.affiliation.generics import (
-        infer_Trange,
-        has_point_anomalies, 
-        _len_wo_nan, 
-        _sum_wo_nan,
-        read_all_as_events)
-from metrics.affiliation._affiliation_zone import (
-        get_all_E_gt_func, 
-        affiliation_partition)
-from metrics.affiliation._single_ground_truth_event import (
-        affiliation_precision_distance,
-        affiliation_recall_distance,
-        affiliation_precision_proba,
-        affiliation_recall_proba)
+try:
+    from metrics.affiliation.generics import (
+            infer_Trange,
+            has_point_anomalies, 
+            _len_wo_nan, 
+            _sum_wo_nan,
+            read_all_as_events)
+    from metrics.affiliation._affiliation_zone import (
+            get_all_E_gt_func, 
+            affiliation_partition)
+    from metrics.affiliation._single_ground_truth_event import (
+            affiliation_precision_distance,
+            affiliation_recall_distance,
+            affiliation_precision_proba,
+            affiliation_recall_proba)
+except ImportError:
+    from affiliation.generics import (
+            infer_Trange,
+            has_point_anomalies, 
+            _len_wo_nan, 
+            _sum_wo_nan,
+            read_all_as_events)
+    from affiliation._affiliation_zone import (
+            get_all_E_gt_func, 
+            affiliation_partition)
+    from affiliation._single_ground_truth_event import (
+            affiliation_precision_distance,
+            affiliation_recall_distance,
+            affiliation_precision_proba,
+            affiliation_recall_proba)
 
 def test_events(events):
     """
@@ -87,8 +103,8 @@ def pr_from_events(events_pred, events_gt, Trange):
         p_precision_average = p_precision[0] # math.nan
     p_recall_average = sum(p_recall) / len(p_recall)
 
-    dict_out = dict({'precision': p_precision_average,
-                     'recall': p_recall_average,
+    dict_out = dict({'Affiliation_Precision': p_precision_average,
+                     'Affiliation_Recall': p_recall_average,
                      'individual_precision_probabilities': p_precision,
                      'individual_recall_probabilities': p_recall,
                      'individual_precision_distances': d_precision,

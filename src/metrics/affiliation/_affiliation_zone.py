@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from metrics.affiliation._integral_interval import interval_intersection
+try:
+    from metrics.affiliation._integral_interval import interval_intersection
+except ImportError:
+    from affiliation._integral_interval import interval_intersection
 
 def t_start(j, Js = [(1,2),(3,4),(5,6)], Trange = (1,10)):
     """

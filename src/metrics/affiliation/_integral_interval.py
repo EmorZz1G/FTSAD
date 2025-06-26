@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import math
-from metrics.affiliation.generics import _sum_wo_nan
+try:
+    from metrics.affiliation.generics import _sum_wo_nan
+except ImportError:
+    from affiliation.generics import _sum_wo_nan
 """
 In order to shorten the length of the variables,
 the general convention in this file is to let:
