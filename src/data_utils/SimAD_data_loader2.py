@@ -496,15 +496,15 @@ class NIPS_TS_CCardSegLoader(GetDataset):
         self.step = step
         self.win_size = win_size
         self.scaler = StandardScaler()
-        data = np.load(data_path + "/NIPS_TS_CCard_train.npy")
+        data = np.load(data_path + "/NIPS_TS_creditcard_train.npy")
         self.scaler.fit(data)
         data = self.scaler.transform(data)
-        test_data = np.load(data_path + "/NIPS_TS_CCard_test.npy")
+        test_data = np.load(data_path + "/NIPS_TS_creditcard_test.npy")
         self.test = self.scaler.transform(test_data)
 
         self.train = data
         self.val = self.test
-        self.test_labels = np.load(data_path + "/NIPS_TS_CCard_test_label.npy")
+        self.test_labels = np.load(data_path + "/NIPS_TS_creditcard_test_label.npy")
 
     def __len__(self):
 
@@ -531,7 +531,49 @@ class NIPS_TS_CCardSegLoader(GetDataset):
                               index // self.step * self.win_size:index // self.step * self.win_size + self.win_size]), np.float32(
                 self.test_labels[index // self.step * self.win_size:index // self.step * self.win_size + self.win_size]) 
         
+class SMD_Ori_Pikled_SegLoader(GetDataset):
+    def __init__(self, index, data_path, win_size, step, mode="train"):
+        self.mode = mode
+        self.step = step
+        self.index = index
+        self.win_size = win_size
+        self.scaler = StandardScaler()
+        data = np.load(data_path + "/machine-"+str(index)+"_train.pkl")
+        self.scaler.fit(data)
+        data = self.scaler.transform(data)
+        test_data = np.load(data_path + "/machine-"+str(index)+"_test.pkl")
+        self.test = self.scaler.transform(test_data)
 
+        self.train = data
+        self.val = self.test
+        self.test_labels = np.load(data_path + "/machine-"+str(index)+"_test_label.pkl")
+        if self.mode == "val":
+            print("train:", self.train.shape)
+            print("test:", self.test.shape)
+
+    def __len__(self):
+        if self.mode == "train":
+            return (self.train.shape[0] - self.win_size) // self.step + 1
+        elif (self.mode == 'val'):
+            return (self.val.shape[0] - self.win_size) // self.step + 1
+        elif (self.mode == 'test'):
+            return (self.test.shape[0] - self.win_size) // self.step + 1
+        else:
+            return (self.test.shape[0] - self.win_size) // self.win_size + 1
+
+    def __getitem__(self, index):
+        index = index * self.step
+        if self.mode == "train":
+            return np.float32(self.train[index:index + self.win_size]), np.zeros(self.win_size)
+        elif (self.mode == 'val'):
+            return np.float32(self.val[index:index + self.win_size]), np.zeros(self.win_size)
+        elif (self.mode == 'test'):
+            return np.float32(self.test[index:index + self.win_size]), np.float32(
+                self.test_labels[index:index + self.win_size])
+        else:
+            return np.float32(self.test[
+                              index // self.step * self.win_size:index // self.step * self.win_size + self.win_size]), np.float32(
+                self.test_labels[index // self.step * self.win_size:index // self.step * self.win_size + self.win_size]) 
         
         
 class SMD_OriSegLoader(GetDataset):
@@ -579,7 +621,7 @@ class SMD_OriSegLoader(GetDataset):
                 self.test_labels[index // self.step * self.win_size:index // self.step * self.win_size + self.win_size])         
 
 
-class SWATSegLoader(Dataset):
+class SWATSegLoader(Dataset,GetDataset):
     def __init__(self, root_path, win_size, step, flag="train", ignore=(10,), scaler=1):
         self.flag = flag
         self.step = step
@@ -713,10 +755,12 @@ def get_loader_segment(index, data_path, batch_size, win_size=100, step=1, mode=
         dataset = NIPS_TS_WaterSegLoader(data_path, win_size, step, mode)
     elif (dataset == 'NIPS_TS_Swan'):
         dataset = NIPS_TS_SwanSegLoader(data_path, win_size, step, mode)
-    elif (dataset == 'NIPS_TS_CCard'):
+    elif (dataset == 'NIPS_TS_Creditcard'):
         dataset = NIPS_TS_CCardSegLoader(data_path, win_size, step, mode)
     elif (dataset == 'SMD_Ori'):
         dataset = SMD_OriSegLoader(index, data_path, win_size, step, mode)
+    elif (dataset == 'SMD_Ori_Pikled'):
+        dataset = SMD_Ori_Pikled_SegLoader(index, data_path, win_size, step, mode)
 
 
     if ret_data:

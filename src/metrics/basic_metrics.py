@@ -33,7 +33,6 @@ def generate_curve(label, score, slidingWindow, version='opt', thre=250):
     else:
         tpr_3d, fpr_3d, prec_3d, window_3d, avg_auc_3d, avg_ap_3d = basic_metricor().RangeAUC_volume_opt(labels_original=label, score=score, windowSize=slidingWindow, thre=thre)
 
-
     X = np.array(tpr_3d).reshape(1,-1).ravel()
     X_ap = np.array(tpr_3d)[:,:-1].reshape(1,-1).ravel()
     Y = np.array(fpr_3d).reshape(1,-1).ravel()
@@ -43,7 +42,62 @@ def generate_curve(label, score, slidingWindow, version='opt', thre=250):
 
     return Y, Z, X, X_ap, W, Z_ap,avg_auc_3d, avg_ap_3d
 
-import math
+def generate_curve_ROC(label, score, slidingWindow, version='opt', thre=250):
+    if version =='opt_mem':
+        # tpr_3d, fpr_3d, prec_3d, window_3d, avg_auc_3d, avg_ap_3d = basic_metricor().RangeAUC_volume_opt_mem(labels_original=label, score=score, windowSize=slidingWindow, thre=thre)
+        raise NotImplementedError("opt_mem version is not implemented for ROC curve generation.")
+    else:
+        tpr_3d, fpr_3d, prec_3d, window_3d, avg_auc_3d, avg_ap_3d = basic_metricor().RangeAUC_volume_opt_ROC_only(labels_original=label, score=score, windowSize=slidingWindow, thre=thre)
+
+    X = np.array(tpr_3d).reshape(1,-1).ravel()
+    X_ap = np.array(tpr_3d)[:,:-1].reshape(1,-1).ravel()
+    Y = np.array(fpr_3d).reshape(1,-1).ravel()
+    W = np.array(prec_3d).reshape(1,-1).ravel()
+    Z = np.repeat(window_3d, len(tpr_3d[0]))
+    Z_ap = np.repeat(window_3d, len(tpr_3d[0])-1)
+
+    return Y, Z, X, X_ap, W, Z_ap,avg_auc_3d, None
+
+def generate_curve_PR(label, score, slidingWindow, version='opt', thre=250):
+    if version =='opt_mem':
+        # tpr_3d, fpr_3d, prec_3d, window_3d, avg_auc_3d, avg_ap_3d = basic_metricor().RangeAUC_volume_opt_mem(labels_original=label, score=score, windowSize=slidingWindow, thre=thre)
+        raise NotImplementedError("opt_mem version is not implemented for PR curve generation.")
+    else:
+        tpr_3d, fpr_3d, prec_3d, window_3d, avg_auc_3d, avg_ap_3d = basic_metricor().RangeAUC_volume_opt_PR_only(labels_original=label, score=score, windowSize=slidingWindow, thre=thre)
+
+    X = np.array(tpr_3d).reshape(1,-1).ravel()
+    X_ap = np.array(tpr_3d)[:,:-1].reshape(1,-1).ravel()
+    Y = np.array(fpr_3d).reshape(1,-1).ravel()
+    W = np.array(prec_3d).reshape(1,-1).ravel()
+    Z = np.repeat(window_3d, len(tpr_3d[0]))
+    Z_ap = np.repeat(window_3d, len(tpr_3d[0])-1)
+
+    return Y, Z, X, X_ap, W, Z_ap,None, avg_ap_3d
+
+import math,torch
+
+class MyAffBiasCache:
+    def __init__(self) -> None:
+        self.cache = {}
+
+    def get_label_hash(self, label):
+        if isinstance(label, np.ndarray):
+            label = label.reshape(-1).tolist()
+        elif isinstance(label, torch.Tensor):
+            label = label.reshape(-1).detach().cpu().numpy().tolist()
+
+        label = tuple(label)  # Convert to tuple for caching
+        label_hash = hash(label)
+        return label_hash
+
+    def cache_bias(self, label, bias):
+        label_hash = self.get_label_hash(label)
+        self.cache[label_hash] = bias
+
+    def get_cached_bias(self, label):
+        label_hash = self.get_label_hash(label)
+        return self.cache.get(label_hash, None)
+    
 
 
 def convert_vector_to_events(vector = [0, 1, 1, 0, 0, 1, 0]):
@@ -69,13 +123,15 @@ def convert_vector_to_events(vector = [0, 1, 1, 0, 0, 1, 0]):
         
     return (events)
 
+
+    
 class basic_metricor():
     def __init__(self, a = 1, probability = True, bias = 'flat', ):
         self.a = a
         self.probability = probability
         self.bias = bias
         self.eps = 1e-15
-        self.Unbiased_Aff_prec_bias = None
+        self.Unbiased_Aff_prec_bias_cache = MyAffBiasCache()
 
     def get_pred(self, score, quantile=0.95):
         """
@@ -88,20 +144,25 @@ class basic_metricor():
         return preds
 
     def cal_unbiased_aff_prec_bias(self, label, sample_cnt=3, verbose=1):
-        precs_bias = []
-        for i in range(sample_cnt):
-            rnd_score = np.random.rand(len(label))
-            thres = np.percentile(rnd_score, 95)
-            preds = rnd_score > thres
-            Affiliation_F, Aff_pre, Aff_rec = self.metric_Affiliation(label, rnd_score, preds=preds)
-            precs_bias.append(Aff_pre)
-        avg_bias = np.mean(precs_bias)
-        if verbose:
-            print(f"[Info]: Unbiased_Aff_prec_bias is set to {avg_bias:.4f} by sampling {sample_cnt} times.")
-            out_str = ", ".join([f"{v:.4}" for i, v in enumerate(precs_bias)])
-            print(f"[Info]: Unbiased_Aff_prec_bias sampling results: [{out_str}]")          
-                
-        self.Unbiased_Aff_prec_bias = avg_bias
+        if self.Unbiased_Aff_prec_bias_cache.get_cached_bias(label) is not None:
+            if verbose:
+                print("[Info]: Unbiased_Aff_prec_bias is already cached. Use the cached value.")
+            return self.Unbiased_Aff_prec_bias_cache.get_cached_bias(label)
+        else:
+            precs_bias = []
+            for i in range(sample_cnt):
+                rnd_score = np.random.rand(len(label))
+                thres = np.percentile(rnd_score, 98)
+                preds = rnd_score > thres
+                Affiliation_F, Aff_pre, Aff_rec = self.metric_Affiliation(label, rnd_score, preds=preds)
+                precs_bias.append(Aff_pre)
+            avg_bias = np.mean(precs_bias)
+            if verbose:
+                print(f"[Info]: Unbiased_Aff_prec_bias is set to {avg_bias:.4f} by sampling {sample_cnt} times.")
+                out_str = ", ".join([f"{v:.4}" for i, v in enumerate(precs_bias)])
+                print(f"[Info]: Unbiased_Aff_prec_bias sampling results: [{out_str}]")          
+                    
+            self.Unbiased_Aff_prec_bias_cache.cache_bias(label, avg_bias)
         return avg_bias
 
     def _metric_PA_percentile_K_k(self, labels, score, preds=None, k = 0.1):
@@ -197,7 +258,8 @@ class basic_metricor():
 
         else:
             eTaP, eTaR, eTaF1 = self._metric_eTaPR_F1_pred(labels, preds, theta_p=theta_p, theta_r=theta_r, delta=delta)
-        return eTaP, eTaR, eTaF1
+
+        return  eTaF1, eTaP, eTaR
 
     def metric_TaPR_F1(self, labels, score=None, preds=None, alpha=0.6, theta=0.8, delta=600):
         if score is None and preds is None:
@@ -217,7 +279,7 @@ class basic_metricor():
             TaP, TaR, TaF1 = self._metric_TaPR_F1_pred(labels, preds, alpha=alpha, theta=theta, delta=delta)
         else:
             TaP, TaR, TaF1 = self._metric_TaPR_F1_pred(labels, preds, alpha=alpha, theta=theta, delta=delta)
-        return TaP, TaR, TaF1
+        return TaF1, TaP, TaR
 
     def _adjust_length(self, labels, preds, base=3):
         anom_ranges = self.range_convers_new(labels)
@@ -259,7 +321,7 @@ class basic_metricor():
             adjust_preds = adjust_preds.astype(int)
             score, adjust_preds = self._adjust_length(labels, adjust_preds)
             precision, recall, f_score, s = metrics.precision_recall_fscore_support(labels, adjust_preds, average='binary')
-            PointF1PA1 = f_score
+            Reduced_F1 = f_score
             Pre = precision
             Rec = recall
 
@@ -267,21 +329,20 @@ class basic_metricor():
             adjust_preds = self._adjust_predicts(score, labels, pred=preds)
             labels, adjust_preds = self._adjust_length(labels, adjust_preds)
             precision, recall, f_score, s = metrics.precision_recall_fscore_support(labels, adjust_preds, average='binary')
-            PointF1PA1 = f_score
+            Reduced_F1 = f_score
             Pre = precision
             Rec = recall
 
-        return PointF1PA1, Pre, Rec
+        return Reduced_F1, Pre, Rec
 
     
         
-
     def metric_UN_Affiliation(self, labels, score, pred=None):
         Affiliation_F, Aff_pre, Aff_rec = self.metric_Affiliation(labels, score, preds=pred)
-        bias_aff_pre = self.Unbiased_Aff_prec_bias
+        bias_aff_pre = self.Unbiased_Aff_prec_bias_cache.get_cached_bias(labels)
         if bias_aff_pre is None:
-            print("[Warning]: Unbiased_Aff_prec_bias is not set. Calculate by sample bias. The time-cost will be higher than setting it manually. You can set it by calling `cal_unbiased_aff_prec_bias` function.")
-            bias_aff_pre = self.cal_unbiased_aff_prec_bias(labels, score, pred)
+            print("[Info]: Unbiased_Aff_prec_bias is not set. Calculate by sample bias. The time-cost will be higher than setting it manually. You can set it by calling `cal_unbiased_aff_prec_bias` function.")
+            bias_aff_pre = self.cal_unbiased_aff_prec_bias(labels)
         UAff_Pre = (Aff_pre - bias_aff_pre)/(1-bias_aff_pre)
         UAff_F1 = 2*abs(UAff_Pre)*Aff_rec/(abs(UAff_Pre)+Aff_rec)
         if UAff_Pre < 0:
@@ -296,15 +357,14 @@ class basic_metricor():
 
     def metric_U_Affiliation_f1_pre_rec(self, labels, score, pred=None):
         Affiliation_F, Aff_pre, Aff_rec = self.metric_Affiliation(labels, score, preds=pred)
-        bias_aff_pre = self.Unbiased_Aff_prec_bias
+        bias_aff_pre = self.Unbiased_Aff_prec_bias_cache.get_cached_bias(labels)
         if bias_aff_pre is None:
-            print("[Warning]: Unbiased_Aff_prec_bias is not set. Calculate by sample bias. The time-cost will be higher than setting it manually. You can set it by calling `cal_unbiased_aff_prec_bias` function.")
-            bias_aff_pre = self.cal_unbiased_aff_prec_bias(labels, score, pred)
+            print("[Info]: Unbiased_Aff_prec_bias is not set. Calculate by sample bias. The time-cost will be higher than setting it manually. You can set it by calling `cal_unbiased_aff_prec_bias` function.")
+            bias_aff_pre = self.cal_unbiased_aff_prec_bias(labels)
         UAff_Pre = (Aff_pre - bias_aff_pre)/(1-bias_aff_pre)
         UAff_F1 = 2*abs(UAff_Pre)*Aff_rec/(abs(UAff_Pre)+Aff_rec)
         if UAff_Pre < 0:
             UAff_F1 *= -1
-
 
         return UAff_F1, UAff_Pre, Aff_rec
     
@@ -335,6 +395,14 @@ class basic_metricor():
     def metric_VUS_ROC_PR(self, labels, scores, slidingWindow=100, version='opt', thre=250):
         _, _, _, _, _, _,VUS_ROC, VUS_PR = generate_curve(labels.astype(int), scores, 2*slidingWindow, version, thre)
         return VUS_ROC, VUS_PR
+    
+    def metric_VUS_ROC(self, labels, scores, slidingWindow=100, version='opt', thre=250):
+        _, _, _, _, _, _,VUS_ROC, VUS_PR = generate_curve_ROC(labels.astype(int), scores, 2*slidingWindow, version, thre)
+        return VUS_ROC
+    
+    def metric_VUS_PR(self, labels, scores, slidingWindow=100, version='opt', thre=250):
+        _, _, _, _, _, _,VUS_ROC, VUS_PR = generate_curve_PR(labels.astype(int), scores, 2*slidingWindow, version, thre)
+        return VUS_PR
 
     def w(self, AnomalyRange, p):
         MyValue = 0
@@ -630,7 +698,7 @@ class basic_metricor():
             preds = score > PointF1PA_Threshold
             adjust_preds = self._adjust_predicts(score, label, pred=preds)
             adjust_preds = adjust_preds.astype(int)
-            Acc = metrics.accuracy_score(label, adjust_preds)
+            # Acc = metrics.accuracy_score(label, adjust_preds)
             precision, recall, f_score, s = metrics.precision_recall_fscore_support(label, adjust_preds, average='binary')
             assert f_score==PointF1PA1
             Pre = precision
@@ -641,13 +709,13 @@ class basic_metricor():
             adjust_preds = self._adjust_predicts(score, label, pred=preds)
             PointF1PA1 = metrics.f1_score(label, adjust_preds)
 
-            Acc = metrics.accuracy_score(label, adjust_preds)
+            # Acc = metrics.accuracy_score(label, adjust_preds)
             precision, recall, f_score, s = metrics.precision_recall_fscore_support(label, adjust_preds, average='binary')
             assert f_score==PointF1PA1
             Pre = precision
             Rec = recall
 
-        return PointF1PA1, Acc, Pre, Rec
+        return PointF1PA1, Pre, Rec
 
     def _get_events(self, y_test, outlier=1, normal=0):
         events = dict()
@@ -1000,6 +1068,184 @@ class basic_metricor():
             ap_3d[window] = AP_range
 
         return tpr_3d, fpr_3d, prec_3d, window_3d, sum(auc_3d) / len(window_3d), sum(ap_3d) / len(window_3d)
+    
+    # TPR_FPR_window
+    def RangeAUC_volume_opt_PR_only(self, labels_original, score, windowSize, thre=250):
+        window_3d = np.arange(0, windowSize + 1, 1)
+        P = np.sum(labels_original)
+        seq = self.range_convers_new(labels_original)
+        l = self.new_sequence(labels_original, seq, windowSize)
+
+        score_sorted = -np.sort(-score)
+
+        tpr_3d = np.zeros((windowSize + 1, thre + 2))
+        fpr_3d = np.zeros((windowSize + 1, thre + 2))
+        prec_3d = np.zeros((windowSize + 1, thre + 1))
+
+        # auc_3d = np.zeros(windowSize + 1)
+        ap_3d = np.zeros(windowSize + 1)
+
+        tp = np.zeros(thre)
+        N_pred = np.zeros(thre)
+
+        for k, i in enumerate(np.linspace(0, len(score) - 1, thre).astype(int)):
+            threshold = score_sorted[i]
+            pred = score >= threshold
+            N_pred[k] = np.sum(pred)
+
+        for window in window_3d:
+
+            labels_extended = self.sequencing(labels_original, seq, window)
+            L = self.new_sequence(labels_extended, seq, window)
+
+            TF_list = np.zeros((thre + 2, 2))
+            Precision_list = np.ones(thre + 1)
+            j = 0
+
+            for i in np.linspace(0, len(score) - 1, thre).astype(int):
+                threshold = score_sorted[i]
+                pred = score >= threshold
+                labels = labels_extended.copy()
+                existence = 0
+
+                for seg in L:
+                    labels[seg[0]:seg[1] + 1] = labels_extended[seg[0]:seg[1] + 1] * pred[seg[0]:seg[1] + 1]
+                    if (pred[seg[0]:(seg[1] + 1)] > 0).any():
+                        existence += 1
+                for seg in seq:
+                    labels[seg[0]:seg[1] + 1] = 1
+
+                TP = 0
+                N_labels = 0
+                for seg in l:
+                    TP += np.dot(labels[seg[0]:seg[1] + 1], pred[seg[0]:seg[1] + 1])
+                    N_labels += np.sum(labels[seg[0]:seg[1] + 1])
+
+                TP += tp[j]
+                FP = N_pred[j] - TP
+
+                existence_ratio = existence / len(L)
+
+                P_new = (P + N_labels) / 2
+                recall = min(TP / P_new, 1)
+
+                TPR = recall * existence_ratio
+                N_new = len(labels) - P_new
+                FPR = FP / N_new
+
+                Precision = TP / N_pred[j]
+
+                j += 1
+                TF_list[j] = [TPR, FPR]
+                Precision_list[j] = Precision
+
+            TF_list[j + 1] = [1, 1]  # otherwise, range-AUC will stop earlier than (1,1)
+
+            tpr_3d[window] = TF_list[:, 0]
+            fpr_3d[window] = TF_list[:, 1]
+            prec_3d[window] = Precision_list
+
+            # width = TF_list[1:, 1] - TF_list[:-1, 1]
+            # height = (TF_list[1:, 0] + TF_list[:-1, 0]) / 2
+            # AUC_range = np.dot(width, height)
+            # auc_3d[window] = (AUC_range)
+
+            width_PR = TF_list[1:-1, 0] - TF_list[:-2, 0]
+            height_PR = Precision_list[1:]
+
+            AP_range = np.dot(width_PR, height_PR)
+            ap_3d[window] = AP_range
+
+        return tpr_3d, fpr_3d, prec_3d, window_3d, None, sum(ap_3d) / len(window_3d)
+
+    # TPR_FPR_window
+    def RangeAUC_volume_opt_ROC_only(self, labels_original, score, windowSize, thre=250):
+        window_3d = np.arange(0, windowSize + 1, 1)
+        P = np.sum(labels_original)
+        seq = self.range_convers_new(labels_original)
+        l = self.new_sequence(labels_original, seq, windowSize)
+
+        score_sorted = -np.sort(-score)
+
+        tpr_3d = np.zeros((windowSize + 1, thre + 2))
+        fpr_3d = np.zeros((windowSize + 1, thre + 2))
+        prec_3d = np.zeros((windowSize + 1, thre + 1))
+
+        auc_3d = np.zeros(windowSize + 1)
+        # ap_3d = np.zeros(windowSize + 1)
+
+        tp = np.zeros(thre)
+        N_pred = np.zeros(thre)
+
+        for k, i in enumerate(np.linspace(0, len(score) - 1, thre).astype(int)):
+            threshold = score_sorted[i]
+            pred = score >= threshold
+            N_pred[k] = np.sum(pred)
+
+        for window in window_3d:
+
+            labels_extended = self.sequencing(labels_original, seq, window)
+            L = self.new_sequence(labels_extended, seq, window)
+
+            TF_list = np.zeros((thre + 2, 2))
+            Precision_list = np.ones(thre + 1)
+            j = 0
+
+            for i in np.linspace(0, len(score) - 1, thre).astype(int):
+                threshold = score_sorted[i]
+                pred = score >= threshold
+                labels = labels_extended.copy()
+                existence = 0
+
+                for seg in L:
+                    labels[seg[0]:seg[1] + 1] = labels_extended[seg[0]:seg[1] + 1] * pred[seg[0]:seg[1] + 1]
+                    if (pred[seg[0]:(seg[1] + 1)] > 0).any():
+                        existence += 1
+                for seg in seq:
+                    labels[seg[0]:seg[1] + 1] = 1
+
+                TP = 0
+                N_labels = 0
+                for seg in l:
+                    TP += np.dot(labels[seg[0]:seg[1] + 1], pred[seg[0]:seg[1] + 1])
+                    N_labels += np.sum(labels[seg[0]:seg[1] + 1])
+
+                TP += tp[j]
+                FP = N_pred[j] - TP
+
+                existence_ratio = existence / len(L)
+
+                P_new = (P + N_labels) / 2
+                recall = min(TP / P_new, 1)
+
+                TPR = recall * existence_ratio
+                N_new = len(labels) - P_new
+                FPR = FP / N_new
+
+                Precision = TP / N_pred[j]
+
+                j += 1
+                TF_list[j] = [TPR, FPR]
+                Precision_list[j] = Precision
+
+            TF_list[j + 1] = [1, 1]  # otherwise, range-AUC will stop earlier than (1,1)
+
+            tpr_3d[window] = TF_list[:, 0]
+            fpr_3d[window] = TF_list[:, 1]
+            prec_3d[window] = Precision_list
+
+            width = TF_list[1:, 1] - TF_list[:-1, 1]
+            height = (TF_list[1:, 0] + TF_list[:-1, 0]) / 2
+            AUC_range = np.dot(width, height)
+            auc_3d[window] = (AUC_range)
+
+            # width_PR = TF_list[1:-1, 0] - TF_list[:-2, 0]
+            # height_PR = Precision_list[1:]
+
+            # AP_range = np.dot(width_PR, height_PR)
+            # ap_3d[window] = AP_range
+
+        return tpr_3d, fpr_3d, prec_3d, window_3d, sum(auc_3d) / len(window_3d), None
 
     def RangeAUC_volume_opt_mem(self, labels_original, score, windowSize, thre=250):
         window_3d = np.arange(0, windowSize + 1, 1)

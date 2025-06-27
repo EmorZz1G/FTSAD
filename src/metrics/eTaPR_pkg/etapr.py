@@ -319,11 +319,6 @@ def print_results(result: dict, verbose: bool) -> None:
         print(buf[:-2])
 
 
-def draw_graph(anomalies: list, predictions: list, graph_dst: str) -> None:
-    assert (graph_dst == 'screen' or graph_dst == 'file' or graph_dst == 'none' or graph_dst == 'all')
-    if graph_dst == 'screen' or graph_dst == 'file' or graph_dst == 'all':
-        Time_Plot.draw_graphs(anomalies, predictions, graph_dst)
-
 
 if __name__ == '__main__':
     argument_parser = argparse.ArgumentParser()
