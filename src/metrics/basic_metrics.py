@@ -2,6 +2,9 @@ from sklearn import metrics
 import numpy as np
 import math
 import copy
+from itertools import groupby
+from operator import itemgetter
+
 try:
     from eTaPR_pkg.tapr import print_result, compute
     from eTaPR_pkg.etapr import evaluate_w_ranges
@@ -22,8 +25,7 @@ except Exception:
     from affiliation.generics import convert_vector_to_events
     from affiliation.metrics import pr_from_events
 
-from itertools import groupby
-from operator import itemgetter
+
 
 
 

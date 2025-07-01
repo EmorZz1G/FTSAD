@@ -18,6 +18,13 @@ import pandas as pd
 
 log_data = []
 
+import argparse
+
+args = argparse.ArgumentParser()
+args.add_argument('--log_filename', '-L', type=str, default='latency_log_real_world.csv', help='The filename for the latency log.', required=True)
+
+args_config = args.parse_args()
+
 @contextmanager
 def timer(case_name, model_name, case_seed, score_seed, metric_name):
     start_time = time.perf_counter()
@@ -37,7 +44,7 @@ def timer(case_name, model_name, case_seed, score_seed, metric_name):
     # 将日志数据写入csv
     df = pd.DataFrame(log_data)
     # df.to_csv(os.path.join(log_pth, 'latency_log.csv'), index=False, mode='w', header=True)
-    df.to_csv(os.path.join(log_pth, 'latency_log_real_world.csv'), index=False, mode='w', header=True)
+    df.to_csv(os.path.join(log_pth, args_config.log_filename ), index=False, mode='w', header=True)
 
     
 

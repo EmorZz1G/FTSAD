@@ -4,6 +4,7 @@ __pycache__/
 
 *.log
 logs/
+logs copy/
 
 # Virtual environment
 venv/

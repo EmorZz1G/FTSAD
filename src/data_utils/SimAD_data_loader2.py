@@ -538,15 +538,18 @@ class SMD_Ori_Pikled_SegLoader(GetDataset):
         self.index = index
         self.win_size = win_size
         self.scaler = StandardScaler()
-        data = np.load(data_path + "/machine-"+str(index)+"_train.pkl")
+        data = np.load(data_path + "/machine-"+str(index)+"_train.pkl", allow_pickle=True)
+        # data = pickle.load(data_path + "/machine-"+str(index)+"_train.pkl")
         self.scaler.fit(data)
         data = self.scaler.transform(data)
-        test_data = np.load(data_path + "/machine-"+str(index)+"_test.pkl")
+        test_data = np.load(data_path + "/machine-"+str(index)+"_test.pkl", allow_pickle=True)
+        # test_data = pickle.load(data_path + "/machine-"+str(index)+"_test.pkl")
         self.test = self.scaler.transform(test_data)
 
         self.train = data
         self.val = self.test
-        self.test_labels = np.load(data_path + "/machine-"+str(index)+"_test_label.pkl")
+        self.test_labels = np.load(data_path + "/machine-"+str(index)+"_test_label.pkl", allow_pickle=True)
+        # self.test_labels = pickle.load(data_path + "/machine-"+str(index)+"_test_label.pkl")
         if self.mode == "val":
             print("train:", self.train.shape)
             print("test:", self.test.shape)
@@ -645,7 +648,7 @@ class SWATSegLoader(Dataset,GetDataset):
         self.test = test_data
         data_len = len(self.train)
         self.val = self.train[(int)(data_len * 0.8):]
-        self.test_labels = labels
+        self.test_labels = labels.reshape(-1)
         print("test:", self.test.shape)
         print("train:", self.train.shape)
 
