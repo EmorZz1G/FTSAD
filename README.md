@@ -1,4 +1,5 @@
 # FTSAD
+This is the repository of the paper *Future of Time Series Anomaly Detection: From Historical Review to Unified Outlook*.
 
 Main Recent Update:
 - [Jun. 23, 2025] [Project homepage](https://emorzz1g.github.io/FTSAD/) is online.
