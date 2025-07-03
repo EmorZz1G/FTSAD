@@ -2,7 +2,7 @@
 
 Main Recent Update:
 - [Jun. 23, 2025] [Project homepage](https://emorzz1g.github.io/FTSAD/) is online.
-- [Jul. 03, 2025] Finish the evaluation of metrics.
+- [Jul. 03, 2025] (1) Finish the evaluation of metrics. (2) Open supplementary files resource.
 
 # Tips
 1. All supplementary files can be found at the directory './supp_files'.
