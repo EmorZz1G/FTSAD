@@ -96,7 +96,8 @@ def test_dataset(dataset_name, train_x, test_x, test_y):
         "Segments": segments,
         "Max Seg Length": mx_anom_len,
         "Min Seg Length": min_anom_len,
-        # 'Anomaly Ratio': anom_ratio*100,
+        'Anomaly Ratio (%)': anom_ratio*100,
+        "Avg Anomaly Length": avg_anom_len,
     }
     print(f"Dataset: {dataset_name}, TS Length: {test_len}, Segments: {segments}, Max Seg Length: {mx_anom_len}, Min Seg Length: {min_anom_len}, Anomaly Ratio: {anom_ratio*100:.2f}%")
     return res

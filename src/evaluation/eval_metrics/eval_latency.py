@@ -44,7 +44,7 @@ def timer(case_name, model_name, case_seed, score_seed, metric_name):
     # 将日志数据写入csv
     df = pd.DataFrame(log_data)
     # df.to_csv(os.path.join(log_pth, 'latency_log.csv'), index=False, mode='w', header=True)
-    df.to_csv(os.path.join(log_pth, args_config.log_filename ), index=False, mode='w', header=True)
+    df.to_csv(os.path.join(log_pth, args_config.log_filename ), index=False, mode='a', header=True)
 
     
 
@@ -79,60 +79,61 @@ def eval_latency(cnt=5):
                 print(score.shape)
                 pred = metricor.get_pred(score)
 
-                with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='F1') as data_item: 
-                    F1 = metricor.metric_PointF1(labels, score, pred)
-                    data_item['val'] = F1
-                with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='F1-PA') as data_item: 
-                    F1PA, pre, rec = metricor.metric_PointF1PA(labels, score, pred)
-                    data_item['val'] = F1PA
-                with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='Reduced-F1') as data_item:
-                    Reduced_F1, Pre, Rec = metricor.metric_Reduced_F1(labels, score, pred)
-                    data_item['val'] = Reduced_F1
-                with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='PA%K') as data_item:
-                    F1_Per_K, Prec_Per_K, Rec_Per_K = metricor.metric_PA_percentile_K(labels, score, pred)
-                    data_item['val'] = F1_Per_K
-                with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='R-based F1') as data_item:
-                    RbasedF1 = metricor.metric_RF1(labels, score, pred)
-                    data_item['val'] = RbasedF1
-                with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='TaPR') as data_item:
-                    TaF1, TaP, TaR = metricor.metric_TaPR_F1(labels, score, pred)
-                    data_item['val'] = TaF1
-                with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='eTaPR') as data_item:
-                    eTaF1, eTaP, eTaR = metricor.metric_eTaPR_F1(labels, score, pred)
-                    data_item['val'] = eTaF1
-                with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='Aff-F1') as data_item:
-                    Aff_F1, Aff_pre, Aff_rec = metricor.metric_Affiliation(labels, score, pred)
-                    data_item['val'] = Aff_F1
-                with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='NAff-F1') as data_item:
-                    NAff_F1, NAff_pre, NAff_rec = metricor.metric_N_Affiliation_f1_pre_rec(labels, score, pred)
-                    data_item['val'] = NAff_F1
-                with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='UAff-F1') as data_item:
-                    UAff_F1, UAff_pre, UAff_rec = metricor.metric_U_Affiliation_f1_pre_rec(labels, score, pred)
-                    data_item['val'] = UAff_F1
+                # with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='F1') as data_item: 
+                #     F1 = metricor.metric_PointF1(labels, score, pred)
+                #     data_item['val'] = F1
+                # with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='F1-PA') as data_item: 
+                #     F1PA, pre, rec = metricor.metric_PointF1PA(labels, score, pred)
+                #     data_item['val'] = F1PA
+                # with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='Reduced-F1') as data_item:
+                #     Reduced_F1, Pre, Rec = metricor.metric_Reduced_F1(labels, score, pred)
+                #     data_item['val'] = Reduced_F1
+                # with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='PA%K') as data_item:
+                #     F1_Per_K, Prec_Per_K, Rec_Per_K = metricor.metric_PA_percentile_K(labels, score, pred)
+                #     data_item['val'] = F1_Per_K
+                # with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='R-based F1') as data_item:
+                #     RbasedF1 = metricor.metric_RF1(labels, score, pred)
+                #     data_item['val'] = RbasedF1
+                # with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='TaPR') as data_item:
+                #     TaF1, TaP, TaR = metricor.metric_TaPR_F1(labels, score, pred)
+                #     data_item['val'] = TaF1
+                # with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='eTaPR') as data_item:
+                #     eTaF1, eTaP, eTaR = metricor.metric_eTaPR_F1(labels, score, pred)
+                #     data_item['val'] = eTaF1
+                # with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='Aff-F1') as data_item:
+                #     Aff_F1, Aff_pre, Aff_rec = metricor.metric_Affiliation(labels, score, pred)
+                #     data_item['val'] = Aff_F1
+                # with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='NAff-F1') as data_item:
+                #     NAff_F1, NAff_pre, NAff_rec = metricor.metric_N_Affiliation_f1_pre_rec(labels, score, pred)
+                #     data_item['val'] = NAff_F1
+                # with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='UAff-F1') as data_item:
+                #     UAff_F1, UAff_pre, UAff_rec = metricor.metric_U_Affiliation_f1_pre_rec(labels, score, pred)
+                #     data_item['val'] = UAff_F1
                 with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='PATE') as data_item:
-                    PATE = metricor.metric_PATE(labels, score, n_jobs=10, num_desired_thresholds=100)
+                    PATE = metricor.metric_PATE(labels, score, n_jobs=100, num_desired_thresholds=100)
                     data_item['val'] = PATE
-                with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='AUC-ROC') as data_item:
-                    AUCROC = metricor.metric_ROC(labels, score)
-                    data_item['val'] = AUCROC
-                with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='AUC-PR') as data_item:
-                    AUCPR = metricor.metric_PR(labels, score)
-                    data_item['val'] = AUCPR
-                with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='VUS-ROC') as data_item:
-                    VUS_ROC = metricor.metric_VUS_ROC(labels, score, thre=100)
-                    data_item['val'] = VUS_ROC
-                with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='VUS-PR') as data_item:
-                    VUS_PR = metricor.metric_VUS_PR(labels, score, thre=100)
-                    data_item['val'] = VUS_ROC
+                # with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='AUC-ROC') as data_item:
+                #     AUCROC = metricor.metric_ROC(labels, score)
+                #     data_item['val'] = AUCROC
+                # with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='AUC-PR') as data_item:
+                #     AUCPR = metricor.metric_PR(labels, score)
+                #     data_item['val'] = AUCPR
+                # with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='VUS-ROC') as data_item:
+                #     VUS_ROC = metricor.metric_VUS_ROC(labels, score, thre=100)
+                #     data_item['val'] = VUS_ROC
+                # with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='VUS-PR') as data_item:
+                #     VUS_PR = metricor.metric_VUS_PR(labels, score, thre=100)
+                #     data_item['val'] = VUS_ROC
 
         
         print(f"Finished evaluating case: {case_name}")
 
 def eval_latency_real_world_case(cnt=5):
     case_seed = 42
-    for case_idx in range(REAL_WORLD_CASE_NUM):
+    for case_idx in range(1):
         case_seed_new = case_seed #+ case_idx
-        for model in model_list:
+        for i, model in enumerate(model_list):
+            # if i==0:continue
             model_typ = model['typs']
             model_name = model['name']
             prob = model['prob']
@@ -148,51 +149,51 @@ def eval_latency_real_world_case(cnt=5):
                 print(score.shape)
                 pred = metricor.get_pred(score)
 
-                with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='F1') as data_item: 
-                    F1 = metricor.metric_PointF1(labels, score, pred)
-                    data_item['val'] = F1
-                with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='F1-PA') as data_item: 
-                    F1PA, pre, rec = metricor.metric_PointF1PA(labels, score, pred)
-                    data_item['val'] = F1PA
-                with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='Reduced-F1') as data_item:
-                    Reduced_F1, Pre, Rec = metricor.metric_Reduced_F1(labels, score, pred)
-                    data_item['val'] = Reduced_F1
-                with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='PA%K') as data_item:
-                    F1_Per_K, Prec_Per_K, Rec_Per_K = metricor.metric_PA_percentile_K(labels, score, pred)
-                    data_item['val'] = F1_Per_K
-                with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='R-based F1') as data_item:
-                    RbasedF1 = metricor.metric_RF1(labels, score, pred)
-                    data_item['val'] = RbasedF1
-                with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='TaPR') as data_item:
-                    TaF1, TaP, TaR = metricor.metric_TaPR_F1(labels, score, pred)
-                    data_item['val'] = TaF1
-                with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='eTaPR') as data_item:
-                    eTaF1, eTaP, eTaR = metricor.metric_eTaPR_F1(labels, score, pred)
-                    data_item['val'] = eTaF1
-                with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='Aff-F1') as data_item:
-                    Aff_F1, Aff_pre, Aff_rec = metricor.metric_Affiliation(labels, score, pred)
-                    data_item['val'] = Aff_F1
-                with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='NAff-F1') as data_item:
-                    NAff_F1, NAff_pre, NAff_rec = metricor.metric_N_Affiliation_f1_pre_rec(labels, score, pred)
-                    data_item['val'] = NAff_F1
-                with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='UAff-F1') as data_item:
-                    UAff_F1, UAff_pre, UAff_rec = metricor.metric_U_Affiliation_f1_pre_rec(labels, score, pred)
-                    data_item['val'] = UAff_F1
+                # with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='F1') as data_item: 
+                #     F1 = metricor.metric_PointF1(labels, score, pred)
+                #     data_item['val'] = F1
+                # with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='F1-PA') as data_item: 
+                #     F1PA, pre, rec = metricor.metric_PointF1PA(labels, score, pred)
+                #     data_item['val'] = F1PA
+                # with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='Reduced-F1') as data_item:
+                #     Reduced_F1, Pre, Rec = metricor.metric_Reduced_F1(labels, score, pred)
+                #     data_item['val'] = Reduced_F1
+                # with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='PA%K') as data_item:
+                #     F1_Per_K, Prec_Per_K, Rec_Per_K = metricor.metric_PA_percentile_K(labels, score, pred)
+                #     data_item['val'] = F1_Per_K
+                # with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='R-based F1') as data_item:
+                #     RbasedF1 = metricor.metric_RF1(labels, score, pred)
+                #     data_item['val'] = RbasedF1
+                # with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='TaPR') as data_item:
+                #     TaF1, TaP, TaR = metricor.metric_TaPR_F1(labels, score, pred)
+                #     data_item['val'] = TaF1
+                # with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='eTaPR') as data_item:
+                #     eTaF1, eTaP, eTaR = metricor.metric_eTaPR_F1(labels, score, pred)
+                #     data_item['val'] = eTaF1
+                # with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='Aff-F1') as data_item:
+                #     Aff_F1, Aff_pre, Aff_rec = metricor.metric_Affiliation(labels, score, pred)
+                #     data_item['val'] = Aff_F1
+                # with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='NAff-F1') as data_item:
+                #     NAff_F1, NAff_pre, NAff_rec = metricor.metric_N_Affiliation_f1_pre_rec(labels, score, pred)
+                #     data_item['val'] = NAff_F1
+                # with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='UAff-F1') as data_item:
+                #     UAff_F1, UAff_pre, UAff_rec = metricor.metric_U_Affiliation_f1_pre_rec(labels, score, pred)
+                #     data_item['val'] = UAff_F1
                 with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='PATE') as data_item:
-                    PATE = metricor.metric_PATE(labels, score, n_jobs=10, num_desired_thresholds=100)
+                    PATE = metricor.metric_PATE(labels, score, n_jobs=100, num_desired_thresholds=100)
                     data_item['val'] = PATE
-                with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='AUC-ROC') as data_item:
-                    AUCROC = metricor.metric_ROC(labels, score)
-                    data_item['val'] = AUCROC
-                with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='AUC-PR') as data_item:
-                    AUCPR = metricor.metric_PR(labels, score)
-                    data_item['val'] = AUCPR
-                with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='VUS-ROC') as data_item:
-                    VUS_ROC = metricor.metric_VUS_ROC(labels, score, thre=100)
-                    data_item['val'] = VUS_ROC
-                with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='VUS-PR') as data_item:
-                    VUS_PR = metricor.metric_VUS_PR(labels, score, thre=100)
-                    data_item['val'] = VUS_ROC
+                # with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='AUC-ROC') as data_item:
+                #     AUCROC = metricor.metric_ROC(labels, score)
+                #     data_item['val'] = AUCROC
+                # with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='AUC-PR') as data_item:
+                #     AUCPR = metricor.metric_PR(labels, score)
+                #     data_item['val'] = AUCPR
+                # with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='VUS-ROC') as data_item:
+                #     VUS_ROC = metricor.metric_VUS_ROC(labels, score, thre=100)
+                #     data_item['val'] = VUS_ROC
+                # with timer(case_name, model_name, case_seed_new, score_seed_new, metric_name='VUS-PR') as data_item:
+                #     VUS_PR = metricor.metric_VUS_PR(labels, score, thre=100)
+                #     data_item['val'] = VUS_ROC
 
         
         print(f"Finished evaluating case: {case_name}")
@@ -201,4 +202,5 @@ def eval_latency_real_world_case(cnt=5):
 if __name__ == "__main__":
     # eval_latency(cnt=3)
     eval_latency_real_world_case(cnt=3)
+    # TODO，PATE在所有的上面测一下，然后除了PATE，在10-100的测一下
     print("Latency evaluation completed.")

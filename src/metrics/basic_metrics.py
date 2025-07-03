@@ -219,7 +219,7 @@ class basic_metricor():
         return F1_Per_K, Prec_Per_K, Rec_Per_K
         
 
-    def metric_PATE(self, labels, score, e_buffer=100, d_buffer=100, n_jobs=1, num_desired_thresholds=250):
+    def metric_PATE(self, labels, score, e_buffer=100, d_buffer=100, n_jobs=100, num_desired_thresholds=250):
         result = PATE(labels, score, e_buffer=e_buffer, d_buffer=d_buffer, n_jobs=n_jobs, num_desired_thresholds= num_desired_thresholds)
         return result
 
