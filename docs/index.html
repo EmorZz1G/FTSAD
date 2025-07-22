@@ -74,7 +74,7 @@
               <div class="publication-links">
                 <!-- Arxiv PDF link -->
                 <span class="link-block">
-                  <a href="https://arxiv.org/pdf/<ARXIV PAPER ID>.pdf" target="_blank"
+                  <a href="static/pdfs/TKDD-2025-02-0132-R1.pdf" target="_blank"
                     class="external-link button is-normal is-rounded is-dark">
                     <span class="icon">
                       <i class="fas fa-file-pdf"></i>
@@ -82,7 +82,17 @@
                     <span>Paper</span>
                   </a>
                 </span>
-                
+
+                <span class="link-block">
+                  <a href=href="static/pdfs/TKDD-2025-02-0132-R1.pdf" target="_blank"
+                    class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                    </span>
+                    <span>Appendix</span>
+                  </a>
+                </span>
+
                 <!-- https://github.com/FortAwesome/Font-Awesome/tree/6.7.2/svgs/solid/  -->
                 <!-- Supplementary PDF link -->
                 <span class="link-block">
@@ -136,10 +146,25 @@
           <h2 class="title is-3">Abstract</h2>
           <div class="content has-text-justified">
             <p>
-              TODO
-              TODO
-              TODO
-              TODO
+              Time series anomaly detection (TSAD), a major topic in data mining, focuses on recognizing patterns that
+              dramatically depart from normal behavior in time series data, a work of crucial practical value. Driven by
+              the rapid expansion in data volume and the rising complexity of application situations, recent years have
+              witnessed the creation of various unique TSAD models, including diffusion models, State Space Models, and
+              Large Language Models. However, existing reviews generally lack thorough coverage of these developing
+              algorithmic designs and give little commentary on multivariate anomalies, cross-domain unified models,
+              metric evaluation, and contemporary issues.
+              To bridge this gap, this survey offers three key contributions:
+              (1) We provide an updated anomaly categorization and algorithmic taxonomy that takes into account current
+              research advances, outlining approaches from diverse paradigms, comparing them, assessing their
+              developmental tendencies, and providing unique insights.
+              (2) We conducted a thorough examination and analysis of existing evaluation methods, as well as an
+              experiment to examine current measures. Furthermore, our open-source project website contains a large
+              variety of datasets and codebases, including algorithms, metrics, and analytical tools.
+              (3) Through an open debate, we carefully explore the present status of algorithm evaluations and
+              generalizable technologies, providing forward-looking talks on model interpretability, zero-shot learning,
+              multi-modality/multi-domain learning, and foundational models.
+              By summarizing current challenges and future opportunities, this review offers fresh perspectives for TSAD
+              research and development.
             </p>
           </div>
         </div>
@@ -147,6 +172,26 @@
     </div>
   </section>
   <!-- End paper abstract -->
+
+  <!-- Image carousel -->
+  <section class="hero is-small">
+    <div class="hero-body">
+      <div class="container">
+        <div id="results-carousel" class="carousel results-carousel">
+          <div class="item">
+            <!-- Your image here -->
+            <img src="static/images/fw.png" alt="framework" />
+            <h3 class="subtitle has-text-centered">
+              The organization of the paper.
+            </h3>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- End image carousel -->
+
+
 
   <section class="section hero is-light">
     <div class="container is-max-desktop">
@@ -193,13 +238,15 @@
           <div class="content has-text-justified">
             <ul>
               <li>
-                <p><strong>Class #1</strong> (Unified TSAD Model, Exploring LLM-Powerd Model, Preditictive LLM-based Model)</p>
+                <p><strong>Class #1</strong> (Unified TSAD Model, Exploring LLM-Powerd Model, Preditictive LLM-based
+                  Model)</p>
                 <code>intitle:(("time series" OR "temporal" OR "time-series" OR "timeseries") AND ("anomaly" OR outlier)) AND ("zero-shot" OR "zero shot" OR "foundational model" OR llm OR "large language model")</code>
               </li></code>
               </li>
               <li>
                 <p><strong>Class #2</strong> (Diffusion-based Model, Transformer-based Model)</p>
-                Before 2017: <code>intitle:(("time series" OR "temporal" OR "time-series" OR "timeseries") AND ("anomaly" OR outlier)) AND ("diffusion model" OR "Transformer model" OR "attention model" OR "attention mechanism" OR "attention module" OR "head attention")</code>
+                Before 2017:
+                <code>intitle:(("time series" OR "temporal" OR "time-series" OR "timeseries") AND ("anomaly" OR outlier)) AND ("diffusion model" OR "Transformer model" OR "attention model" OR "attention mechanism" OR "attention module" OR "head attention")</code>
                 <br><br>
                 2017 and after 2017:
                 <code>intitle:(("time series" OR "temporal" OR "time-series" OR "timeseries") AND ("anomaly" OR outlier)) AND ("diffusion model" OR "Transformer model" OR "Transformer" OR "attention model" OR "attention mechanism" OR "attention module" OR "head attention")</code>
