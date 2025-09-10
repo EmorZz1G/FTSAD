@@ -23,3 +23,5 @@ https://github.com/TheDatumOrg/TSB-AD
 https://github.com/Raminghorbanii/PATE/
 
 https://github.com/wshw4ng/eTaPR
+
+https://github.com/thuml/Time-Series-Library

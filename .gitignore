@@ -7,6 +7,7 @@ logs/
 logs copy/
 src_dev/
 
+/tests
 
 # Virtual environment
 venv/
