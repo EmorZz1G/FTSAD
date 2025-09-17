@@ -8,6 +8,7 @@ Main Recent Update:
 # Tips
 1. All supplementary files can be found at the directory './supp_files'.
 2. All datasets can be found in the directories './datasets' or './dataset_tar'. You can use the script './src/data_utils/SimAD_data_loader2.py' to load them. Please note that this script is still under development.
+3. To download all the datasets, you should **install `git-lsf` first**.
 
 # Acknowledgement
 We appreciate the following github repos a lot for their valuable code:
